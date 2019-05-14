@@ -71,7 +71,7 @@ class AllMusicScreenState extends State<AllMusicScreen> with SingleTickerProvide
                     children: <Widget> [Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Text("Music Therapy", style: TextStyle(fontSize: 24,color: Colors.white,fontWeight: FontWeight.w200),),
+                        Text("Sound Therapy", style: TextStyle(fontSize: 24,color: Colors.white,fontWeight: FontWeight.w200),),
                       ],
                     ),
                     ]

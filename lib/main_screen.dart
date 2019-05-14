@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
 import 'package:flutter_findar_v3/music_repo.dart';
+import 'package:volume/volume.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen({
@@ -15,7 +16,8 @@ class MainScreen extends StatefulWidget {
   }
 }
 
-class MainScreenState extends State<MainScreen> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin{
+class MainScreenState extends State<MainScreen>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   Animation<double> animation;
   AnimationController controller;
   String musicTitle;
@@ -23,16 +25,23 @@ class MainScreenState extends State<MainScreen> with TickerProviderStateMixin, A
   double toolbarIconSize = 25;
   List musicList = MusicRepo().musicList;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
-  var sliderValue = 0.0;
 
+  var _sliderValue = 10.0;
+
+  int maxVol, currentVol;
+
+  bool _isMusicPlaying = Home.isMusicPlaying;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    controller = AnimationController(vsync: this,duration: Duration(milliseconds: 0));
+    controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 0));
     animation = CurvedAnimation(parent: controller, curve: Curves.easeIn);
 
+    // Make this call in initState() function in the root widgte of your app
+    initPlatformState();
   }
 
   @override
@@ -48,101 +57,170 @@ class MainScreenState extends State<MainScreen> with TickerProviderStateMixin, A
         status == AnimationStatus.forward;
   }
 
-
-
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
     print(controller.status);
     if (Home.isMusicPlaying && controller.status == AnimationStatus.forward) {
-      controller.fling(velocity:2.0);
-    } else if (Home.isMusicPlaying && controller.status == AnimationStatus.dismissed){
+      controller.fling(velocity: 2.0);
+    } else if (Home.isMusicPlaying &&
+        controller.status == AnimationStatus.dismissed) {
       controller.fling(velocity: 2.0);
     } else {
-      controller.fling(velocity:-2.0);
+      controller.fling(velocity: -2.0);
     }
     return Scaffold(
       key: _scaffoldKey,
-      body: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage((Home.currentMusic == null)
-                      ? musicList[0].imageUri
-                      : Home.currentMusic.imageUri),
-                  fit: BoxFit.fitHeight,
-                ),
-              ),
+      body: Stack(fit: StackFit.expand, children: <Widget>[
+        Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage((Home.currentMusic == null)
+                  ? musicList[0].imageUri
+                  : Home.currentMusic.imageUri),
+              fit: BoxFit.fitHeight,
             ),
-            DecoratedBox(decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [Color(0x80000000),
-                Color(0x30000000)],
-                  begin: FractionalOffset.topCenter,
-                  end: FractionalOffset.bottomCenter),
-            )),
-            Container(
-              child: Column(
+          ),
+        ),
+        DecoratedBox(
+            decoration: BoxDecoration(
+          gradient: LinearGradient(
+              colors: [Color(0x80000000), Color(0x30000000)],
+              begin: FractionalOffset.topCenter,
+              end: FractionalOffset.bottomCenter),
+        )),
+        Container(
+          child: Column(
+            children: <Widget>[
+              SizedBox(
+                height: 130.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  SizedBox(
-                    height: 130.0,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        child: Text(
-                          (Home.currentMusic == null)
-                              ? musicList[0].title
-                              : Home.currentMusic.title,
-                          style: TextStyle(fontSize: 24.0, color: Colors.white, fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    ],
+                  Container(
+                    child: Text(
+                      (Home.currentMusic == null)
+                          ? musicList[0].title
+                          : Home.currentMusic.title,
+                      style: TextStyle(
+                          fontSize: 24.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ],
               ),
-            ),
-            Positioned(
-              bottom: 54,
-              left: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: RawMaterialButton(
-                        onPressed: () {
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 55,
+          left: 0,
+          right: 0,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    width: 60.0,
+                    height: 60.0,
+                    child: RawMaterialButton(
+                      onPressed: () {
+                        Home.isMusicPlaying = !Home.isMusicPlaying;
+                        if (Home.isMusicPlaying == true) {
                           setState(() {
-                            Home.isMusicPlaying = !Home.isMusicPlaying;
-                            controller.fling(velocity: _status ? -2.0 : 2.0);
-                            if (Home.isMusicPlaying) HomeState().playSound();
-                            else HomeState().pauseSound();
+                            HomeState().playSound();
+                            _isMusicPlaying = true;
                           });
-                        },
-                        elevation: 20.0,
-                        shape: CircleBorder(),
-                        child: Container(
-                            width: 80.0,
-                            height: 80.0,
-                            child: Center(child: AnimatedIcon(icon: AnimatedIcons.play_pause, progress: controller.view,color: Colors.white,size: 50,))
-                        ),
-                        fillColor: Colors.white54,
-                      ),
+                        } else if (Home.isMusicPlaying == false) {
+                          setState(() {
+                            HomeState().pauseSound();
+                            _isMusicPlaying = false;
+                          });
+                        }
+//                      setState(() {
+//                        Home.isMusicPlaying = !Home.isMusicPlaying;
+//                        controller.fling(velocity: _status ? -2.0 : 2.0);
+//                        if (Home.isMusicPlaying)
+//                          HomeState().playSound();
+//                        else
+//                          HomeState().pauseSound();
+//                      });
+                      },
+                      elevation: 20.0,
+                      shape: CircleBorder(),
+                      child: _isMusicPlaying
+                          ? new Icon(Icons.pause)
+                          : new Icon(Icons.play_arrow),
+//                    child: Container(
+//                        width: 80.0,
+//                        height: 80.0,
+//                        child: Center(
+//                            child: AnimatedIcon(
+//                          icon: AnimatedIcons.play_pause,
+//                          progress: controller.view,
+//                          color: Colors.white,
+//                          size: 50,
+//                        ))),
+                      fillColor: Colors.white54,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            )
-          ]),
+                Expanded(
+                    child: ListTile(
+                  title: Text(
+                    "Volume",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.0
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  subtitle: Slider(
+                    activeColor: Colors.white,
+                    min: 0.0,
+                    max: 15.0,
+                    onChanged: (newRating) {
+                      setState(() {
+                        _sliderValue = newRating;
+                        updateVolumes((_sliderValue).round());
+                      });
+                    },
+                    value: _sliderValue,
+                  ),
+                )),
+              ],
+            ),
+          ),
+        )
+      ]),
     );
   }
 
   @override
   bool get wantKeepAlive => true;
+
+  //Volume Controller Tools
+  Future<void> initPlatformState() async {
+    // pass any stream as parameter as per requirement
+    await Volume.controlVolume(AudioManager.STREAM_MUSIC);
+  }
+
+  updateVolumes(int volume) async {
+    setVol(volume);
+    // get Max Volume
+    maxVol = await Volume.getMaxVol;
+    // get Current Volume
+    currentVol = await Volume.getVol;
+    setState(() {});
+  }
+
+  setVol(int i) async {
+    await Volume.setVol(i);
+  }
 }
+

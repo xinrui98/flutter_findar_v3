@@ -115,7 +115,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   BottomNavigationBarItem(
                       icon: Icon(Icons.timer), title: Text("Timer")),
                   BottomNavigationBarItem(
-                      icon: Icon(Icons.music_note), title: Text("Music")),
+                      icon: Icon(Icons.music_note), title: Text("Sounds")),
                   BottomNavigationBarItem(
                       icon: Icon(Icons.dashboard), title: Text("Learn")),
                   BottomNavigationBarItem(
