@@ -26,11 +26,13 @@ class MainScreenState extends State<MainScreen>
   List musicList = MusicRepo().musicList;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-  var _sliderValue = 10.0;
-
   int maxVol, currentVol;
 
   bool _isMusicPlaying = Home.isMusicPlaying;
+
+  bool _increaseVolumeButtonPressed = false;
+  bool _decreaseVolumeButtonPressed = false;
+  bool _loopActive = false;
 
   @override
   void initState() {
@@ -115,33 +117,29 @@ class MainScreenState extends State<MainScreen>
           ),
         ),
         Positioned(
-          bottom: 55,
+          bottom: 60,
           left: 0,
           right: 0,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    width: 60.0,
-                    height: 60.0,
-                    child: RawMaterialButton(
-                      onPressed: () {
-                        Home.isMusicPlaying = !Home.isMusicPlaying;
-                        if (Home.isMusicPlaying == true) {
-                          setState(() {
-                            HomeState().playSound();
-                            _isMusicPlaying = true;
-                          });
-                        } else if (Home.isMusicPlaying == false) {
-                          setState(() {
-                            HomeState().pauseSound();
-                            _isMusicPlaying = false;
-                          });
-                        }
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Container(
+                width: 85.0,
+                height: 85.0,
+                child: RawMaterialButton(
+                  onPressed: () {
+                    Home.isMusicPlaying = !Home.isMusicPlaying;
+                    if (Home.isMusicPlaying == true) {
+                      setState(() {
+                        HomeState().playSound();
+                        _isMusicPlaying = true;
+                      });
+                    } else if (Home.isMusicPlaying == false) {
+                      setState(() {
+                        HomeState().pauseSound();
+                        _isMusicPlaying = false;
+                      });
+                    }
 //                      setState(() {
 //                        Home.isMusicPlaying = !Home.isMusicPlaying;
 //                        controller.fling(velocity: _status ? -2.0 : 2.0);
@@ -150,12 +148,18 @@ class MainScreenState extends State<MainScreen>
 //                        else
 //                          HomeState().pauseSound();
 //                      });
-                      },
-                      elevation: 20.0,
-                      shape: CircleBorder(),
-                      child: _isMusicPlaying
-                          ? new Icon(Icons.pause)
-                          : new Icon(Icons.play_arrow),
+                  },
+                  elevation: 20.0,
+                  shape: CircleBorder(),
+                  child: _isMusicPlaying
+                      ? new Icon(
+                          Icons.pause,
+                          size: 55.0,
+                        )
+                      : new Icon(
+                          Icons.play_arrow,
+                          size: 55.0,
+                        ),
 //                    child: Container(
 //                        width: 80.0,
 //                        height: 80.0,
@@ -166,35 +170,70 @@ class MainScreenState extends State<MainScreen>
 //                          color: Colors.white,
 //                          size: 50,
 //                        ))),
-                      fillColor: Colors.white54,
-                    ),
-                  ),
+                  fillColor: Colors.white54,
                 ),
-                Expanded(
-                    child: ListTile(
-                  title: Text(
-                    "Volume",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20.0
-                    ),
-                    textAlign: TextAlign.center,
+              ),
+              Row(
+                children: <Widget>[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      Listener(
+                        onPointerDown: (details) {
+                          _increaseVolumeButtonPressed = true;
+                          volumeButtonLongPress();
+                          print("increase vol button long hold");
+                        },
+                        onPointerUp: (details) {
+                          _increaseVolumeButtonPressed = false;
+                          print("increase vol button long hold off");
+
+                        },
+                        child: RaisedButton(
+                          color: Colors.white54,
+                          child: Icon(
+                            Icons.volume_up,
+                            size: 35.0,
+                          ),
+                          shape: new RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(30.0)),
+                          onPressed: () {
+                            Volume.volUp();
+                            updateVolumes();
+                          },
+                        ),
+                      ),
+                      Listener(
+                        onPointerDown: (details) {
+                          _decreaseVolumeButtonPressed = true;
+                          volumeButtonLongPress();
+                          print("decrease vol button long hold");
+
+                        },
+                        onPointerUp: (details) {
+                          _decreaseVolumeButtonPressed = false;
+                          print("decrease vol button long hold off");
+
+                        },
+                        child: RaisedButton(
+                          color: Colors.white54,
+                          child: Icon(
+                            Icons.volume_down,
+                            size: 35.0,
+                          ),
+                          shape: new RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(30.0)),
+                          onPressed: () {
+                            Volume.volDown();
+                            updateVolumes();
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  subtitle: Slider(
-                    activeColor: Colors.white,
-                    min: 0.0,
-                    max: 15.0,
-                    onChanged: (newRating) {
-                      setState(() {
-                        _sliderValue = newRating;
-                        updateVolumes((_sliderValue).round());
-                      });
-                    },
-                    value: _sliderValue,
-                  ),
-                )),
-              ],
-            ),
+                ],
+              )
+            ],
           ),
         )
       ]),
@@ -210,7 +249,7 @@ class MainScreenState extends State<MainScreen>
     await Volume.controlVolume(AudioManager.STREAM_MUSIC);
   }
 
-  updateVolumes(int volume) async {
+  updateVolumes({int volume}) async {
     setVol(volume);
     // get Max Volume
     maxVol = await Volume.getMaxVol;
@@ -222,5 +261,32 @@ class MainScreenState extends State<MainScreen>
   setVol(int i) async {
     await Volume.setVol(i);
   }
-}
 
+  void volumeButtonLongPress() async {
+    // make sure that only one loop is active
+    if (_loopActive) return;
+
+    _loopActive = true;
+
+    while (_increaseVolumeButtonPressed) {
+      // do your thing
+      setState(() {
+        Volume.volUp();
+      });
+
+      // wait a bit
+      await Future.delayed(Duration(milliseconds: 200));
+    }
+    while (_decreaseVolumeButtonPressed) {
+      // do your thing
+      setState(() {
+        Volume.volDown();
+      });
+
+      // wait a bit
+      await Future.delayed(Duration(milliseconds: 200));
+    }
+
+    _loopActive = false;
+  }
+}
