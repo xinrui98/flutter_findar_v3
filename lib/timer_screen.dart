@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -13,9 +14,16 @@ class TimerScreen extends StatefulWidget {
     return TimerScreenState();
   }
 }
+//add WigetsBindingObserver to TimerScreenState;
+//initstate
+//dispose
+//didChangeAppLifecycleState
 
 class TimerScreenState extends State<TimerScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+    with
+        TickerProviderStateMixin,
+        AutomaticKeepAliveClientMixin,
+        WidgetsBindingObserver {
   List musicList = MusicRepo().musicList;
   AnimationController controller;
   bool isAnimating = false;
@@ -25,6 +33,7 @@ class TimerScreenState extends State<TimerScreen>
   bool initalizedTimer = true;
   Duration duration;
 
+
   String get timerString {
     duration = controller.duration * controller.value;
     return '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
@@ -33,6 +42,10 @@ class TimerScreenState extends State<TimerScreen>
   @override
   void initState() {
     super.initState();
+
+    //to run activity in background
+    WidgetsBinding.instance.addObserver(this);
+
     duration = Duration(hours: hours, minutes: minutes);
     controller = AnimationController(
       vsync: this,
@@ -58,9 +71,42 @@ class TimerScreenState extends State<TimerScreen>
 
   @override
   void dispose() {
+    //to run activity in background
+    WidgetsBinding.instance.removeObserver(this);
+
     controller.dispose();
     HomeState.isTimerRunning = false;
     super.dispose();
+  }
+
+  Future pauseSoundInBackground(Duration timeLeft) async{
+    print("in pauseSoundInBackground function");
+    print("time left = $timeLeft");
+    await new Future.delayed(new Duration(seconds: timeLeft.inSeconds), (){
+      HomeState().pauseSound();
+      Home.isMusicPlaying = false;
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.paused:
+        print("paused state");
+        pauseSoundInBackground(duration);
+        break;
+      case AppLifecycleState.resumed:
+        print("resumed");
+        break;
+      case AppLifecycleState.inactive:
+//        pauseSoundInBackground(duration);
+        print("inactive");
+        break;
+      case AppLifecycleState.suspending:
+        print("suspending");
+        break;
+    }
   }
 
   @override
@@ -101,11 +147,11 @@ class TimerScreenState extends State<TimerScreen>
             filter: ImageFilter.blur(sigmaY: 10, sigmaX: 10),
             child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Color(0x50000000), Color(0xA0000000)],
-                      begin: FractionalOffset.topLeft,
-                      end: FractionalOffset.bottomRight),
-                )),
+              gradient: LinearGradient(
+                  colors: [Color(0x50000000), Color(0xA0000000)],
+                  begin: FractionalOffset.topLeft,
+                  end: FractionalOffset.bottomRight),
+            )),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -140,10 +186,10 @@ class TimerScreenState extends State<TimerScreen>
                               builder: (BuildContext context, Widget child) {
                                 return CustomPaint(
                                     painter: TimerPainter(
-                                      animation: controller,
-                                      backgroundColor: Colors.white,
-                                      color: Colors.greenAccent,
-                                    ));
+                                  animation: controller,
+                                  backgroundColor: Colors.white,
+                                  color: Colors.greenAccent,
+                                ));
                               },
                             ),
                           ),
@@ -228,10 +274,15 @@ class TimerScreenState extends State<TimerScreen>
             top: 50,
             right: 16,
             child: IconButton(
-              icon: Icon(Icons.help_outline,color: Colors.white,),
+              icon: Icon(
+                Icons.help_outline,
+                color: Colors.white,
+              ),
               onPressed: () {
-                final snackBar = SnackBar(content: Text("Leaving this page will turn off the timer"),
-                  action: SnackBarAction(label: "OK", onPressed: () {}),);
+                final snackBar = SnackBar(
+                  content: Text("Leaving this page will turn off the timer"),
+                  action: SnackBarAction(label: "OK", onPressed: () {}),
+                );
                 Scaffold.of(context).showSnackBar(snackBar);
               },
             ),
@@ -262,11 +313,11 @@ class TimerScreenState extends State<TimerScreen>
             filter: ImageFilter.blur(sigmaY: 10, sigmaX: 10),
             child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Color(0x50000000), Color(0xA0000000)],
-                      begin: FractionalOffset.topLeft,
-                      end: FractionalOffset.bottomRight),
-                )),
+              gradient: LinearGradient(
+                  colors: [Color(0x50000000), Color(0xA0000000)],
+                  begin: FractionalOffset.topLeft,
+                  end: FractionalOffset.bottomRight),
+            )),
           ),
           Center(
             child: Padding(
