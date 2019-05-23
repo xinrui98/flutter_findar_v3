@@ -86,11 +86,11 @@ class MainScreenState extends State<MainScreen>
         ),
         DecoratedBox(
             decoration: BoxDecoration(
-          gradient: LinearGradient(
-              colors: [Color(0x80000000), Color(0x30000000)],
-              begin: FractionalOffset.topCenter,
-              end: FractionalOffset.bottomCenter),
-        )),
+              gradient: LinearGradient(
+                  colors: [Color(0x80000000), Color(0x30000000)],
+                  begin: FractionalOffset.topCenter,
+                  end: FractionalOffset.bottomCenter),
+            )),
         Container(
           child: Column(
             children: <Widget>[
@@ -153,13 +153,13 @@ class MainScreenState extends State<MainScreen>
                   shape: CircleBorder(),
                   child: _isMusicPlaying
                       ? new Icon(
-                          Icons.pause,
-                          size: 55.0,
-                        )
+                    Icons.pause,
+                    size: 55.0,
+                  )
                       : new Icon(
-                          Icons.play_arrow,
-                          size: 55.0,
-                        ),
+                    Icons.play_arrow,
+                    size: 55.0,
+                  ),
 //                    child: Container(
 //                        width: 80.0,
 //                        height: 80.0,
@@ -187,7 +187,6 @@ class MainScreenState extends State<MainScreen>
                         onPointerUp: (details) {
                           _increaseVolumeButtonPressed = false;
                           print("increase vol button long hold off");
-
                         },
                         child: RaisedButton(
                           color: Colors.white54,
@@ -198,8 +197,7 @@ class MainScreenState extends State<MainScreen>
                           shape: new RoundedRectangleBorder(
                               borderRadius: new BorderRadius.circular(30.0)),
                           onPressed: () {
-                            Volume.volUp();
-                            updateVolumes();
+//                            Volume.volUp() already called during onPointerUp
                           },
                         ),
                       ),
@@ -208,12 +206,10 @@ class MainScreenState extends State<MainScreen>
                           _decreaseVolumeButtonPressed = true;
                           volumeButtonLongPress();
                           print("decrease vol button long hold");
-
                         },
                         onPointerUp: (details) {
                           _decreaseVolumeButtonPressed = false;
                           print("decrease vol button long hold off");
-
                         },
                         child: RaisedButton(
                           color: Colors.white54,
@@ -224,8 +220,7 @@ class MainScreenState extends State<MainScreen>
                           shape: new RoundedRectangleBorder(
                               borderRadius: new BorderRadius.circular(30.0)),
                           onPressed: () {
-                            Volume.volDown();
-                            updateVolumes();
+//                            Volume.volDown() already called during onPointerUp
                           },
                         ),
                       ),
@@ -249,17 +244,38 @@ class MainScreenState extends State<MainScreen>
     await Volume.controlVolume(AudioManager.STREAM_MUSIC);
   }
 
-  updateVolumes({int volume}) async {
-    setVol(volume);
+  updateVolumes() async {
     // get Max Volume
     maxVol = await Volume.getMaxVol;
     // get Current Volume
     currentVol = await Volume.getVol;
+    print("current volume = $currentVol");
+    setVol(currentVol);
     setState(() {});
   }
 
   setVol(int i) async {
     await Volume.setVol(i);
+  }
+
+  increaseVolume() async {
+    Volume.volUp();
+    print("current volume = $currentVol");
+    currentVol = await Volume.getVol;
+    currentVol += 1;
+    print("after increase, volume = $currentVol");
+    setVol(currentVol);
+    setState(() {});
+  }
+
+  decreaseVolume() async {
+    Volume.volDown();
+    print("current volume = $currentVol");
+    currentVol = await Volume.getVol;
+    currentVol -= 1;
+    print("after decrease, volume = $currentVol");
+    setVol(currentVol);
+    setState(() {});
   }
 
   void volumeButtonLongPress() async {
@@ -271,16 +287,15 @@ class MainScreenState extends State<MainScreen>
     while (_increaseVolumeButtonPressed) {
       // do your thing
       setState(() {
-        Volume.volUp();
+        increaseVolume();
       });
-
       // wait a bit
       await Future.delayed(Duration(milliseconds: 200));
     }
     while (_decreaseVolumeButtonPressed) {
       // do your thing
       setState(() {
-        Volume.volDown();
+        decreaseVolume();
       });
 
       // wait a bit
