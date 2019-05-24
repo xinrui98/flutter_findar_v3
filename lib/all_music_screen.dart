@@ -3,6 +3,10 @@ import 'package:flutter_findar_v3/main.dart';
 import 'dart:ui';
 
 import 'package:flutter_findar_v3/music_repo.dart';
+
+import 'package:flutter/services.dart';
+import 'package:media_notification/media_notification.dart';
+
 class AllMusicScreen extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -15,6 +19,20 @@ class AllMusicScreenState extends State<AllMusicScreen> with SingleTickerProvide
   AnimationController controller;
   Animation<double> animation;
 
+  String status = 'hidden';
+
+  int getCurrentMusicPosition(){
+    for(int i=0; i<musicList.length; i++) {
+      if (Home.currentMusic != null) {
+        if (Home.currentMusic.title == musicList[i].title){
+          return i;
+        }
+      }else{
+        return 0;
+      }
+    }
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -22,6 +40,78 @@ class AllMusicScreenState extends State<AllMusicScreen> with SingleTickerProvide
     controller = AnimationController(vsync: this,
         duration: Duration(seconds: 1));
     this.animation = Tween(begin: 0.0, end: 1.0).animate(controller);
+
+    //pause status
+    MediaNotification.setListener('pause', () {
+      setState(() {
+        status = 'pause';
+        HomeState().pauseSound();
+        Home.isMusicPlaying = false;
+      });
+    });
+
+    //play status
+    MediaNotification.setListener('play', () {
+      setState(() {
+        status = 'play';
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+      });
+    });
+
+    MediaNotification.setListener('next', () {
+      setState(() {
+        status = 'next';
+        if(getCurrentMusicPosition()<musicList.length-1) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() + 1];
+        }else{
+          Home.currentMusic = musicList[0 ];
+        }
+        HomeState().stopSound();
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+        showMusicNotificationBar(
+            "Findar SleepCare",
+            (Home.currentMusic == null)
+                ? musicList[0].title
+                : Home.currentMusic.title);
+      });
+    });
+
+    MediaNotification.setListener('prev', () {
+      setState(() {
+        status = 'prev';
+        if(getCurrentMusicPosition()>0) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() -1];
+        }else{
+          Home.currentMusic = musicList[musicList.length-1];
+        }
+        HomeState().stopSound();
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+        showMusicNotificationBar(
+            "Findar SleepCare",
+            (Home.currentMusic == null)
+                ? musicList[0].title
+                : Home.currentMusic.title);
+      });
+    });
+
+    MediaNotification.setListener('select', () {});
+  }
+
+  Future<void> hideMusicNotificationBar() async {
+    try {
+      await MediaNotification.hide();
+      setState(() => status = 'hidden');
+    } on PlatformException {}
+  }
+
+  Future<void> showMusicNotificationBar(title, author) async {
+    try {
+      await MediaNotification.show(title: title, author: author);
+      setState(() => status = 'play');
+    } on PlatformException {}
   }
 
   @override
@@ -161,6 +251,11 @@ class AllMusicScreenState extends State<AllMusicScreen> with SingleTickerProvide
                                               HomeState().stopSound();
                                               HomeState().playSound();
                                               Home.isMusicPlaying = true;
+                                              showMusicNotificationBar(
+                                                  "Findar SleepCare",
+                                                  (Home.currentMusic == null)
+                                                      ? musicList[0].title
+                                                      : Home.currentMusic.title);
                                             });
                                           },
                                         ),

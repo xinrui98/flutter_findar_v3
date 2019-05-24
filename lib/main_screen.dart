@@ -5,6 +5,9 @@ import 'main.dart';
 import 'package:flutter_findar_v3/music_repo.dart';
 import 'package:volume/volume.dart';
 
+import 'package:flutter/services.dart';
+import 'package:media_notification/media_notification.dart';
+
 class MainScreen extends StatefulWidget {
   MainScreen({
     Key key,
@@ -28,11 +31,23 @@ class MainScreenState extends State<MainScreen>
 
   int maxVol, currentVol;
 
-  bool _isMusicPlaying = Home.isMusicPlaying;
-
   bool _increaseVolumeButtonPressed = false;
   bool _decreaseVolumeButtonPressed = false;
   bool _loopActive = false;
+
+  String status = 'hidden';
+
+  int getCurrentMusicPosition(){
+    for(int i=0; i<musicList.length; i++) {
+      if (Home.currentMusic != null) {
+        if (Home.currentMusic.title == musicList[i].title){
+          return i;
+        }
+      }else{
+        return 0;
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -42,9 +57,82 @@ class MainScreenState extends State<MainScreen>
         AnimationController(vsync: this, duration: Duration(milliseconds: 0));
     animation = CurvedAnimation(parent: controller, curve: Curves.easeIn);
 
-    // Make this call in initState() function in the root widgte of your app
+    // Make this call in initState() function in the root widget of your app
     initPlatformState();
+
+    //pause status
+    MediaNotification.setListener('pause', () {
+        setState(() {
+          status = 'pause';
+          HomeState().pauseSound();
+          Home.isMusicPlaying = false;
+        });
+    });
+
+    //play status
+    MediaNotification.setListener('play', () {
+        setState(() {
+          status = 'play';
+          HomeState().playSound();
+          Home.isMusicPlaying = true;
+        });
+    });
+
+    MediaNotification.setListener('next', () {
+      setState(() {
+        status = 'next';
+        if(getCurrentMusicPosition()<musicList.length-1) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() + 1];
+        }else{
+          Home.currentMusic = musicList[0 ];
+        }
+        HomeState().stopSound();
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+        showMusicNotificationBar(
+            "Findar SleepCare",
+            (Home.currentMusic == null)
+                ? musicList[0].title
+                : Home.currentMusic.title);
+      });
+    });
+
+    MediaNotification.setListener('prev', () {
+      setState(() {
+        status = 'prev';
+        if(getCurrentMusicPosition()>0) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() -1];
+        }else{
+          Home.currentMusic = musicList[musicList.length-1];
+        }
+        HomeState().stopSound();
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+        showMusicNotificationBar(
+            "Findar SleepCare",
+            (Home.currentMusic == null)
+                ? musicList[0].title
+                : Home.currentMusic.title);
+      });
+    });
+
+    MediaNotification.setListener('select', () {});
   }
+
+  Future<void> hideMusicNotificationBar() async {
+    try {
+      await MediaNotification.hide();
+      setState(() => status = 'hidden');
+    } on PlatformException {}
+  }
+
+  Future<void> showMusicNotificationBar(title, author) async {
+    try {
+      await MediaNotification.show(title: title, author: author);
+      setState(() => status = 'play');
+    } on PlatformException {}
+  }
+
 
   @override
   void dispose() {
@@ -86,11 +174,11 @@ class MainScreenState extends State<MainScreen>
         ),
         DecoratedBox(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [Color(0x80000000), Color(0x30000000)],
-                  begin: FractionalOffset.topCenter,
-                  end: FractionalOffset.bottomCenter),
-            )),
+          gradient: LinearGradient(
+              colors: [Color(0x80000000), Color(0x30000000)],
+              begin: FractionalOffset.topCenter,
+              end: FractionalOffset.bottomCenter),
+        )),
         Container(
           child: Column(
             children: <Widget>[
@@ -131,13 +219,21 @@ class MainScreenState extends State<MainScreen>
                     Home.isMusicPlaying = !Home.isMusicPlaying;
                     if (Home.isMusicPlaying == true) {
                       setState(() {
+                        //Notification bar
+                        showMusicNotificationBar(
+                            "Findar SleepCare",
+                            (Home.currentMusic == null)
+                                ? musicList[0].title
+                                : Home.currentMusic.title);
                         HomeState().playSound();
-                        _isMusicPlaying = true;
+                        Home.isMusicPlaying = true;
                       });
                     } else if (Home.isMusicPlaying == false) {
                       setState(() {
+                        //hide Notification bar
+                        hideMusicNotificationBar();
                         HomeState().pauseSound();
-                        _isMusicPlaying = false;
+                        Home.isMusicPlaying = false;
                       });
                     }
 //                      setState(() {
@@ -151,15 +247,15 @@ class MainScreenState extends State<MainScreen>
                   },
                   elevation: 20.0,
                   shape: CircleBorder(),
-                  child: _isMusicPlaying
+                  child: Home.isMusicPlaying
                       ? new Icon(
-                    Icons.pause,
-                    size: 55.0,
-                  )
+                          Icons.pause,
+                          size: 55.0,
+                        )
                       : new Icon(
-                    Icons.play_arrow,
-                    size: 55.0,
-                  ),
+                          Icons.play_arrow,
+                          size: 55.0,
+                        ),
 //                    child: Container(
 //                        width: 80.0,
 //                        height: 80.0,

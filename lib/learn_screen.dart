@@ -1,6 +1,112 @@
 import 'package:flutter/material.dart';
 
-class LearnScreen extends StatelessWidget {
+import 'package:flutter/services.dart';
+import 'package:media_notification/media_notification.dart';
+
+import 'package:flutter_findar_v3/main.dart';
+import 'dart:ui';
+
+import 'package:flutter_findar_v3/music_repo.dart';
+
+class LearnScreen extends StatefulWidget {
+  @override
+  _LearnScreenState createState() {
+    return _LearnScreenState();
+  }
+}
+
+class _LearnScreenState extends State<LearnScreen> {
+  String status = 'hidden';
+  List musicList = MusicRepo().musicList;
+
+  int getCurrentMusicPosition() {
+    for (int i = 0; i < musicList.length; i++) {
+      if (Home.currentMusic != null) {
+        if (Home.currentMusic.title == musicList[i].title) {
+          return i;
+        }
+      } else {
+        return 0;
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    //pause status
+    MediaNotification.setListener('pause', () {
+      setState(() {
+        status = 'pause';
+        HomeState().pauseSound();
+        Home.isMusicPlaying = false;
+      });
+    });
+
+    //play status
+    MediaNotification.setListener('play', () {
+      setState(() {
+        status = 'play';
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+      });
+    });
+
+    MediaNotification.setListener('next', () {
+      setState(() {
+        status = 'next';
+        if (getCurrentMusicPosition() < musicList.length - 1) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() + 1];
+        } else {
+          Home.currentMusic = musicList[0 ];
+        }
+        HomeState().stopSound();
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+        showMusicNotificationBar(
+            "Findar SleepCare",
+            (Home.currentMusic == null)
+                ? musicList[0].title
+                : Home.currentMusic.title);
+      });
+    });
+
+    MediaNotification.setListener('prev', () {
+      setState(() {
+        status = 'prev';
+        if (getCurrentMusicPosition() > 0) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() - 1];
+        } else {
+          Home.currentMusic = musicList[musicList.length - 1];
+        }
+        HomeState().stopSound();
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+        showMusicNotificationBar(
+            "Findar SleepCare",
+            (Home.currentMusic == null)
+                ? musicList[0].title
+                : Home.currentMusic.title);
+      });
+    });
+
+    MediaNotification.setListener('select', () {});
+  }
+
+  Future<void> hideMusicNotificationBar() async {
+    try {
+      await MediaNotification.hide();
+      setState(() => status = 'hidden');
+    } on PlatformException {}
+  }
+
+  Future<void> showMusicNotificationBar(title, author) async {
+    try {
+      await MediaNotification.show(title: title, author: author);
+      setState(() => status = 'play');
+    } on PlatformException {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -42,7 +148,8 @@ class LearnScreen extends StatelessWidget {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => LearnRootedInProvenScience()));
+                                builder: (context) =>
+                                    LearnRootedInProvenScience()));
                       },
                       leading: new Icon(Icons.school),
                       title: new Text(
@@ -55,7 +162,7 @@ class LearnScreen extends StatelessWidget {
                 ),
                 Card(
                   child: new ListTile(
-                      onTap: (){
+                      onTap: () {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -80,7 +187,8 @@ class LearnScreen extends StatelessWidget {
 }
 
 class LearnOurTechnologies extends StatelessWidget {
-  String _learnTechnologyDescription = '''Combining the latest advances in psychoacoustics and energy medicine, our brainwave synchronization technology - ‘Brain Enhance’ features the unique sound track, the unique audio equipment and the perfect combination of them. All of these have been carefully engineered and tested to show that they are capable of improving your mind, especially your sleeping, towards a better state.
+  String _learnTechnologyDescription =
+  '''Combining the latest advances in psychoacoustics and energy medicine, our brainwave synchronization technology - ‘Brain Enhance’ features the unique sound track, the unique audio equipment and the perfect combination of them. All of these have been carefully engineered and tested to show that they are capable of improving your mind, especially your sleeping, towards a better state.
   
 1. Our sound tracks - Brain Wave Subliminals, are exclusively created by Dr. Mariarosa Greco PhD and Giancarlo Tarozzi, using their 20 years of research, expertise and experience in integrative medicine and eauroscience. These tracks are imbued with binaural and/or isochronic rhythms, imbedded with Delta waves as the first step and Theta and/or Epsilon waves as the second and deeper step, together with subliminal messages from Dr. Mariarosa Greco’s voice for even deeper and more effective subconscious re-programming to help you achieve the desired state with greater ease and efficiency. 
 
@@ -89,7 +197,6 @@ class LearnOurTechnologies extends StatelessWidget {
 3. The perfect combination of software (iSS：APP) and hardware (iSS: Equipment) maximizes the therapeutic effect by brainwave synchronization, better than any phone APP that is designed just for a general use. All sound tracks in our APP have been crafted to align with the iSS: Equipment’s frequency response to ensure that messages, tones and beats can be regenerated with super high fidelity and can be perceived by your brain.
 
 ''';
-
 
   @override
   Widget build(BuildContext context) {
@@ -101,12 +208,14 @@ class LearnOurTechnologies extends StatelessWidget {
         ),
         body: new Stack(
           children: <Widget>[
-            Center(child: new Image.asset(
-              'assets/learn_description.jpg',
-              width: 490.0,
-              height: 1200.0,
-              fit: BoxFit.fill,
-            ),),
+            Center(
+              child: new Image.asset(
+                'assets/learn_description.jpg',
+                width: 490.0,
+                height: 1200.0,
+                fit: BoxFit.fill,
+              ),
+            ),
             new ListView(
               children: <Widget>[
                 new ListTile(
@@ -121,8 +230,10 @@ class LearnOurTechnologies extends StatelessWidget {
         ));
   }
 }
+
 class LearnRootedInProvenScience extends StatelessWidget {
-  String _learnRootedInProvenScienceDescription = '''1. Brainwaves and Synchronization
+  String _learnRootedInProvenScienceDescription =
+  '''1. Brainwaves and Synchronization
 The root of all our thoughts, emotions and behaviors is the communication between neurons within our brains. Brainwaves are thus produced by synchronized electrical pulses from masses of neurons communicating with each other.  In other words, brainwaves are rhythmic or repetitive patterns of neural activity in the central nervous system. 
 Extensive scientific research has revealed how all our mind states (relaxation, focus, anxiety, sleep, meditation...) correspond to specific brainwave patterns. Also, due to neuroplasticity (the brain's endless and amazing capacity to change, adapt, and reorganize itself) and tendency of our brains to synchronize with external stimuli, it is possible to use sound to influence your dominant brainwave frequency. This process is known as brainwave synchronization. Scientific research and clinic tests have proved its effectiveness. It works in a way that increases entropy to your brain in a very specific way, relating directly to neuroplasticity.  In this regard, as you listen to sounds with specific rhythms, your brain is being pushed by resonance to produce more alpha, theta, delta, and gamma brainwaves, and to form new neural pathways between the right and left hemispheres.  You can even think of this as exercise for your brain.  As you continue to give your brain this stimulus, it is eventually pushed, through the process of forming new neural pathways, to reorganize (or re-map) itself at a more optimal state. The result of this reorganization is experientially recognized as increased awareness of oneself and one’s subconscious, improved threshold to stress (resulting in emotional mastery), and an improvement in ability, mental function, emotional sensitivity, and creative achievement. For example, when you are very stressed or anxious, your brain will usually be producing an elevated amount of the higher beta brainwave activity. By stimulating your brain with lower alpha frequencies you can reduce the frequency of your dominant brainwave activity, helping to calm your mind and reduce the feeling of stress. 
 Brainwave synchronization lets your brain calm down or speed up, depending on your needs. Let’s look at the various brainwave frequencies and states.
@@ -159,12 +270,14 @@ Subliminal messages are defined as signals below the absolute threshold level of
         ),
         body: new Stack(
           children: <Widget>[
-            Center(child: new Image.asset(
-              'assets/learn_description2.jpg',
-              width: 490.0,
-              height: 1200.0,
-              fit: BoxFit.fill,
-            ),),
+            Center(
+              child: new Image.asset(
+                'assets/learn_description2.jpg',
+                width: 490.0,
+                height: 1200.0,
+                fit: BoxFit.fill,
+              ),
+            ),
             new ListView(
               children: <Widget>[
                 new ListTile(
@@ -181,8 +294,10 @@ Subliminal messages are defined as signals below the absolute threshold level of
 }
 
 class LearnOurProfessionals extends StatelessWidget {
-  String _learnOurProfessionalsMariarosa = '''Dr. Mariarosa is a psychologist, psychotherapist and practitioner in integrative medicine, biofeedback and neurofeedback. After 15 years of her professional work in Italy, she continued her studies in US. and was awarded a PhD in integrative medicine. In 2015 she was invited as a keynote speaker in the World Congress of Integrative Medicine at Quantum University in Honolulu- Hawai’i.  Since 2009, she has created subliminal sounds and successfully applied for numerous clients. She uses to say “Nothing is impossible, as teach us the simply word Impossible that contain the meaning “Im-possible”, when we awake our consciousness and choice our Life! ''';
-  String _learnOurProfessionalsGiancarlo = '''Mr. Giancarlo Tarozzi is a researcher and practitioner with years of experience in natural therapy, neuroplasticity of brain, brainwave sounds, and music of healing. He wrote many books about natural and holistic healing. He is also a director of two Italian Magazines: Jasmine and Olis (about natural healing, environmental).''';
+  String _learnOurProfessionalsMariarosa =
+  '''Dr. Mariarosa is a psychologist, psychotherapist and practitioner in integrative medicine, biofeedback and neurofeedback. After 15 years of her professional work in Italy, she continued her studies in US. and was awarded a PhD in integrative medicine. In 2015 she was invited as a keynote speaker in the World Congress of Integrative Medicine at Quantum University in Honolulu- Hawai’i.  Since 2009, she has created subliminal sounds and successfully applied for numerous clients. She uses to say “Nothing is impossible, as teach us the simply word Impossible that contain the meaning “Im-possible”, when we awake our consciousness and choice our Life! ''';
+  String _learnOurProfessionalsGiancarlo =
+  '''Mr. Giancarlo Tarozzi is a researcher and practitioner with years of experience in natural therapy, neuroplasticity of brain, brainwave sounds, and music of healing. He wrote many books about natural and holistic healing. He is also a director of two Italian Magazines: Jasmine and Olis (about natural healing, environmental).''';
 
   @override
   Widget build(BuildContext context) {
@@ -194,12 +309,14 @@ class LearnOurProfessionals extends StatelessWidget {
         ),
         body: new Stack(
           children: <Widget>[
-            Center(child: new Image.asset(
-              'assets/learn_description3.jpg',
-              width: 490.0,
-              height: 1200.0,
-              fit: BoxFit.fill,
-            ),),
+            Center(
+              child: new Image.asset(
+                'assets/learn_description3.jpg',
+                width: 490.0,
+                height: 1200.0,
+                fit: BoxFit.fill,
+              ),
+            ),
             new ListView(
               children: <Widget>[
                 new ListTile(
@@ -222,4 +339,3 @@ class LearnOurProfessionals extends StatelessWidget {
         ));
   }
 }
-

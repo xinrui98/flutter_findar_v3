@@ -2,10 +2,113 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SettingsScreen extends StatelessWidget {
+import 'package:media_notification/media_notification.dart';
+import 'package:flutter_findar_v3/main.dart';
+import 'dart:ui';
+import 'package:flutter_findar_v3/music_repo.dart';
+import 'package:flutter/services.dart';
+
+
+class SettingsScreen extends StatefulWidget {
+  @override
+  _SettingsScreenState createState() {
+    return _SettingsScreenState();
+  }
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String status = 'hidden';
+  List musicList = MusicRepo().musicList;
+
+  int getCurrentMusicPosition() {
+    for (int i = 0; i < musicList.length; i++) {
+      if (Home.currentMusic != null) {
+        if (Home.currentMusic.title == musicList[i].title) {
+          return i;
+        }
+      } else {
+        return 0;
+      }
+    }
+  }
+  @override
+  void initState() {
+    super.initState();
+    //pause status
+    MediaNotification.setListener('pause', () {
+      setState(() {
+        status = 'pause';
+        HomeState().pauseSound();
+        Home.isMusicPlaying = false;
+      });
+    });
+
+    //play status
+    MediaNotification.setListener('play', () {
+      setState(() {
+        status = 'play';
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+      });
+    });
+
+    MediaNotification.setListener('next', () {
+      setState(() {
+        status = 'next';
+        if (getCurrentMusicPosition() < musicList.length - 1) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() + 1];
+        } else {
+          Home.currentMusic = musicList[0 ];
+        }
+        HomeState().stopSound();
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+        showMusicNotificationBar(
+            "Findar SleepCare",
+            (Home.currentMusic == null)
+                ? musicList[0].title
+                : Home.currentMusic.title);
+      });
+    });
+
+    MediaNotification.setListener('prev', () {
+      setState(() {
+        status = 'prev';
+        if (getCurrentMusicPosition() > 0) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() - 1];
+        } else {
+          Home.currentMusic = musicList[musicList.length - 1];
+        }
+        HomeState().stopSound();
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+        showMusicNotificationBar(
+            "Findar SleepCare",
+            (Home.currentMusic == null)
+                ? musicList[0].title
+                : Home.currentMusic.title);
+      });
+    });
+
+    MediaNotification.setListener('select', () {});
+  }
+
+  Future<void> hideMusicNotificationBar() async {
+    try {
+      await MediaNotification.hide();
+      setState(() => status = 'hidden');
+    } on PlatformException {}
+  }
+
+  Future<void> showMusicNotificationBar(title, author) async {
+    try {
+      await MediaNotification.show(title: title, author: author);
+      setState(() => status = 'play');
+    } on PlatformException {}
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return new Scaffold(
       body: new Stack(
         children: <Widget>[
@@ -205,11 +308,13 @@ class MoreAbout extends StatelessWidget {
                       children: [
                         new TextSpan(
                           text: 'www.findar-tech.com',
-                          style: new TextStyle(color: Colors.blue, decoration: TextDecoration.underline, fontSize: 35.0),
+                          style: new TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                              fontSize: 35.0),
                           recognizer: new TapGestureRecognizer()
                             ..onTap = () {
-                              launch(
-                                  'http://findar-tech.com/index.html');
+                              launch('http://findar-tech.com/index.html');
                             },
                         ),
                       ],
@@ -221,5 +326,4 @@ class MoreAbout extends StatelessWidget {
           ],
         ));
   }
-
 }
