@@ -37,13 +37,13 @@ class MainScreenState extends State<MainScreen>
 
   String status = 'hidden';
 
-  int getCurrentMusicPosition(){
-    for(int i=0; i<musicList.length; i++) {
+  int getCurrentMusicPosition() {
+    for (int i = 0; i < musicList.length; i++) {
       if (Home.currentMusic != null) {
-        if (Home.currentMusic.title == musicList[i].title){
+        if (Home.currentMusic.title == musicList[i].title) {
           return i;
         }
-      }else{
+      } else {
         return 0;
       }
     }
@@ -62,29 +62,29 @@ class MainScreenState extends State<MainScreen>
 
     //pause status
     MediaNotification.setListener('pause', () {
-        setState(() {
-          status = 'pause';
-          HomeState().pauseSound();
-          Home.isMusicPlaying = false;
-        });
+      setState(() {
+        status = 'pause';
+        HomeState().pauseSound();
+        Home.isMusicPlaying = false;
+      });
     });
 
     //play status
     MediaNotification.setListener('play', () {
-        setState(() {
-          status = 'play';
-          HomeState().playSound();
-          Home.isMusicPlaying = true;
-        });
+      setState(() {
+        status = 'play';
+        HomeState().playSound();
+        Home.isMusicPlaying = true;
+      });
     });
 
     MediaNotification.setListener('next', () {
       setState(() {
         status = 'next';
-        if(getCurrentMusicPosition()<musicList.length-1) {
+        if (getCurrentMusicPosition() < musicList.length - 1) {
           Home.currentMusic = musicList[getCurrentMusicPosition() + 1];
-        }else{
-          Home.currentMusic = musicList[0 ];
+        } else {
+          Home.currentMusic = musicList[0];
         }
         HomeState().stopSound();
         HomeState().playSound();
@@ -100,10 +100,10 @@ class MainScreenState extends State<MainScreen>
     MediaNotification.setListener('prev', () {
       setState(() {
         status = 'prev';
-        if(getCurrentMusicPosition()>0) {
-          Home.currentMusic = musicList[getCurrentMusicPosition() -1];
-        }else{
-          Home.currentMusic = musicList[musicList.length-1];
+        if (getCurrentMusicPosition() > 0) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() - 1];
+        } else {
+          Home.currentMusic = musicList[musicList.length - 1];
         }
         HomeState().stopSound();
         HomeState().playSound();
@@ -133,6 +133,12 @@ class MainScreenState extends State<MainScreen>
     } on PlatformException {}
   }
 
+  Future<void> togglePlayPauseNotificationBar(title, author) async{
+    try {
+      await MediaNotification.togglePlayPauseButton(title: title, author: author);
+      setState(() => status = 'toggling');
+    } on PlatformException {}
+  }
 
   @override
   void dispose() {
@@ -231,7 +237,12 @@ class MainScreenState extends State<MainScreen>
                     } else if (Home.isMusicPlaying == false) {
                       setState(() {
                         //hide Notification bar
-                        hideMusicNotificationBar();
+//                        hideMusicNotificationBar();
+                        //toggles to PLAY button, when sound is paused
+                        togglePlayPauseNotificationBar( "Findar SleepCare",
+                          (Home.currentMusic == null)
+                              ? musicList[0].title
+                              : Home.currentMusic.title);
                         HomeState().pauseSound();
                         Home.isMusicPlaying = false;
                       });

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_findar_v3/main.dart';
 import 'package:flutter_findar_v3/music_repo.dart';
@@ -30,26 +31,27 @@ class TimerScreenState extends State<TimerScreen>
   List musicList = MusicRepo().musicList;
   AnimationController controller;
   bool isAnimating = false;
-  static var hours = 0;
+//  static var hours = 0;
   static var minutes = 0;
   bool startedTimer = false;
   bool initalizedTimer = true;
   Duration duration;
-
   String status = 'hidden';
+  bool isTimerButtonPlaying;
 
-  int getCurrentMusicPosition(){
-    for(int i=0; i<musicList.length; i++) {
+  var timerPauseInBackground;
+
+  int getCurrentMusicPosition() {
+    for (int i = 0; i < musicList.length; i++) {
       if (Home.currentMusic != null) {
-        if (Home.currentMusic.title == musicList[i].title){
+        if (Home.currentMusic.title == musicList[i].title) {
           return i;
         }
-      }else{
+      } else {
         return 0;
       }
     }
   }
-
 
   String get timerString {
     duration = controller.duration * controller.value;
@@ -63,7 +65,7 @@ class TimerScreenState extends State<TimerScreen>
     //to run activity in background
     WidgetsBinding.instance.addObserver(this);
 
-    duration = Duration(hours: hours, minutes: minutes);
+    duration = Duration(minutes: minutes);
     controller = AnimationController(
       vsync: this,
       duration: duration,
@@ -74,10 +76,23 @@ class TimerScreenState extends State<TimerScreen>
         setState(() {
           isAnimating = false;
           //hides music control notification bar after opening app
-          hideMusicNotificationBar();
+//          hideMusicNotificationBar();
+          //toggles to PLAY button, when timer and sound is paused
+          togglePlayPauseNotificationBar(
+              "Findar SleepCare",
+              (Home.currentMusic == null)
+                  ? musicList[0].title
+                  : Home.currentMusic.title);
         });
         HomeState().pauseSound();
+        Home.isMusicPlaying = false;
       }
+//      else{
+//        showMusicNotificationBar("Findar SleepCare",
+//            (Home.currentMusic == null)
+//                ? musicList[0].title
+//                : Home.currentMusic.title);
+//      }
     });
 
     MediaNotification.setListener('pause', () {
@@ -103,7 +118,6 @@ class TimerScreenState extends State<TimerScreen>
         status = 'play';
         HomeState().playSound();
         Home.isMusicPlaying = true;
-
 //        if(!controller.isAnimating) {
 //          controller.reverse(
 //              from: controller.value == 0.0
@@ -117,10 +131,10 @@ class TimerScreenState extends State<TimerScreen>
     MediaNotification.setListener('next', () {
       setState(() {
         status = 'next';
-        if(getCurrentMusicPosition()<musicList.length-1) {
+        if (getCurrentMusicPosition() < musicList.length - 1) {
           Home.currentMusic = musicList[getCurrentMusicPosition() + 1];
-        }else{
-          Home.currentMusic = musicList[0 ];
+        } else {
+          Home.currentMusic = musicList[0];
         }
         HomeState().stopSound();
         HomeState().playSound();
@@ -136,10 +150,10 @@ class TimerScreenState extends State<TimerScreen>
     MediaNotification.setListener('prev', () {
       setState(() {
         status = 'prev';
-        if(getCurrentMusicPosition()>0) {
-          Home.currentMusic = musicList[getCurrentMusicPosition() -1];
-        }else{
-          Home.currentMusic = musicList[musicList.length-1];
+        if (getCurrentMusicPosition() > 0) {
+          Home.currentMusic = musicList[getCurrentMusicPosition() - 1];
+        } else {
+          Home.currentMusic = musicList[musicList.length - 1];
         }
         HomeState().stopSound();
         HomeState().playSound();
@@ -169,6 +183,14 @@ class TimerScreenState extends State<TimerScreen>
     } on PlatformException {}
   }
 
+  Future<void> togglePlayPauseNotificationBar(title, author) async {
+    try {
+      await MediaNotification.togglePlayPauseButton(
+          title: title, author: author);
+      setState(() => status = 'toggling');
+    } on PlatformException {}
+  }
+
   displayScreen(bool isTimerRunning) {
     if (startedTimer)
       return timerScreen();
@@ -187,23 +209,39 @@ class TimerScreenState extends State<TimerScreen>
   }
 
   //hard code way of ending sound in the background
-  Future pauseSoundInBackground(Duration timeLeft) async{
-    print("in pauseSoundInBackground function");
-    print("time left = $timeLeft");
-    await new Future.delayed(new Duration(seconds: timeLeft.inSeconds), (){
+  //replace with pauseSoundInBackgroundUsingTimer(Duration timeLeft)
+//  Future pauseSoundInBackground(Duration timeLeft) async{
+//    print("in pauseSoundInBackground function");
+//    print("time left = $timeLeft");
+//    await new Future.delayed(new Duration(seconds: timeLeft.inSeconds), (){
+//      HomeState().pauseSound();
+//      Home.isMusicPlaying = false;
+//    });
+//  }
+
+  pauseSoundInBackgroundUsingTimer(Duration timeLeft) {
+    return Timer(Duration(seconds: timeLeft.inSeconds), () {
       HomeState().pauseSound();
       Home.isMusicPlaying = false;
+      //toggles to PLAY button, when timer and sound is paused
+      togglePlayPauseNotificationBar(
+          "Findar SleepCare",
+          (Home.currentMusic == null)
+              ? musicList[0].title
+              : Home.currentMusic.title);
     });
+    // and later, before the timer goes off...
+//    t.cancel();
   }
 
-  Future hideNotificationBarInBackground(int secondsLeft) async{
+  //not used. to hide notification bar using future delay way
+  Future hideNotificationBarInBackground(int secondsLeft) async {
     print("in hideNotificationBarInBackground function");
     print("time left to hide notification bar = $secondsLeft");
-    await new Future.delayed(new Duration(seconds: secondsLeft), (){
+    await new Future.delayed(new Duration(seconds: secondsLeft), () {
       hideMusicNotificationBar();
     });
   }
-
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -211,9 +249,18 @@ class TimerScreenState extends State<TimerScreen>
     switch (state) {
       case AppLifecycleState.paused:
         print("paused state");
+        timerPauseInBackground = pauseSoundInBackgroundUsingTimer(duration);
         break;
       case AppLifecycleState.resumed:
         print("resumed");
+        timerPauseInBackground.cancel();
+        //show playing noti bar after coming back to app from paused state
+        if(isTimerButtonPlaying==true){
+          showMusicNotificationBar( "Findar SleepCare",
+              (Home.currentMusic == null)
+                  ? musicList[0].title
+                  : Home.currentMusic.title);
+        }
         break;
       case AppLifecycleState.inactive:
         print("inactive");
@@ -239,6 +286,7 @@ class TimerScreenState extends State<TimerScreen>
       if (controller.isAnimating) {
         controller.reverse();
         isAnimating = true;
+        Home.isMusicPlaying = true;
         HomeState().playSound();
       }
     });
@@ -357,9 +405,16 @@ class TimerScreenState extends State<TimerScreen>
                           print(controller.isAnimating);
                           if (controller.isAnimating) {
                             controller.stop();
+                            isTimerButtonPlaying = false;
                             setState(() {
                               //hide music control notification bar when paused timer
-                              hideMusicNotificationBar();
+//                              hideMusicNotificationBar();
+                              //toggles to PLAY button, when sound is paused
+                              togglePlayPauseNotificationBar(
+                                  "Findar SleepCare",
+                                  (Home.currentMusic == null)
+                                      ? musicList[0].title
+                                      : Home.currentMusic.title);
                               isAnimating = false;
                               HomeState.isTimerRunning = false;
                               HomeState().pauseSound();
@@ -370,6 +425,7 @@ class TimerScreenState extends State<TimerScreen>
                                 from: controller.value == 0.0
                                     ? 1.0
                                     : controller.value);
+                            isTimerButtonPlaying = true;
                             setState(() {
                               //for music controller noti bar
                               showMusicNotificationBar(
@@ -398,7 +454,7 @@ class TimerScreenState extends State<TimerScreen>
             right: 16,
             child: IconButton(
               icon: Icon(
-                Icons.help_outline,
+                Icons.warning,
                 color: Colors.white,
               ),
               onPressed: () {
@@ -449,7 +505,7 @@ class TimerScreenState extends State<TimerScreen>
                 onChange: (val) {
                   setState(() {
                     duration = val;
-                    hours = duration.inHours;
+//                    hours = duration.inHours;
                     minutes = duration.inMinutes;
                   });
                 },
@@ -475,10 +531,10 @@ class TimerScreenState extends State<TimerScreen>
                         setState(() {
                           startedTimer = true;
                           initalizedTimer = true;
-                          hours = duration.inHours;
+//                          hours = duration.inHours;
                           minutes = duration.inMinutes;
                           controller.duration =
-                              Duration(hours: hours, minutes: minutes);
+                              Duration(minutes: minutes);
                         });
                       }
                     },
