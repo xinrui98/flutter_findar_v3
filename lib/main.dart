@@ -119,7 +119,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   BottomNavigationBarItem(
                       icon: Icon(Icons.dashboard), title: Text("Learn")),
                   BottomNavigationBarItem(
-                      icon: Icon(Icons.info), title: Text("More"))
+                      icon: Icon(Icons.more), title: Text("More"))
                 ],
                 currentIndex: selectedIndex,
                 fixedColor: Colors.white,

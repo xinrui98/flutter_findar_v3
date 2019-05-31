@@ -527,6 +527,12 @@ class TimerScreenState extends State<TimerScreen>
                     child: Icon(Icons.arrow_forward),
                     backgroundColor: Colors.green,
                     onPressed: () {
+                      //show warning snackbar
+                      final snackBar = SnackBar(
+                        content: Text("Leaving this page will turn off the timer"),
+                        action: SnackBarAction(label: "OK", onPressed: () {}),
+                      );
+                      Scaffold.of(context).showSnackBar(snackBar);
                       if (duration.inSeconds != 0) {
                         setState(() {
                           startedTimer = true;

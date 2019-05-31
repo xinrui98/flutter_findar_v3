@@ -4,7 +4,6 @@ class MusicRepo {
   static String defaultText = "Default Text";
   List allMusic = [
     Music("Dreaming", "assets/l2_3.mp3", "assets/dreaming.jpg",defaultText),
-//    Music("Dreaming", "assets/test_sound.mp3", "assets/dreaming.jpg",defaultText),
     Music("Fountain Bubbling", "assets/l1_1.mp3","assets/fountain_bubbling1.jpg",defaultText),
     Music("Harmony", "assets/l2_1.mp3", "assets/harmony.jpg", defaultText),
     Music("Gentle Lake", "assets/l1_2.mp3", "assets/gentle_lake.jpg",defaultText),
