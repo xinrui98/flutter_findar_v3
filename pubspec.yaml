@@ -32,11 +32,12 @@ dependencies:
   flutter_duration_picker: ^1.0.4
   fluttertoast: ^3.0.3
   flushbar: ^1.4.0
-
   url_launcher: ^5.0.2
   volume: ^0.1.0
-
   media_notification: ^0.0.5
+  background_fetch:
+    git:
+      url: https://github.com/transistorsoft/flutter_background_fetch
 
 
 dev_dependencies:

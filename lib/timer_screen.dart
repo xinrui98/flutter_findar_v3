@@ -31,6 +31,7 @@ class TimerScreenState extends State<TimerScreen>
   List musicList = MusicRepo().musicList;
   AnimationController controller;
   bool isAnimating = false;
+
 //  static var hours = 0;
   static var minutes = 0;
   bool startedTimer = false;
@@ -255,8 +256,9 @@ class TimerScreenState extends State<TimerScreen>
         print("resumed");
         timerPauseInBackground.cancel();
         //show playing noti bar after coming back to app from paused state
-        if(isTimerButtonPlaying==true){
-          showMusicNotificationBar( "Findar SleepCare",
+        if (isTimerButtonPlaying == true) {
+          showMusicNotificationBar(
+              "Findar SleepCare",
               (Home.currentMusic == null)
                   ? musicList[0].title
                   : Home.currentMusic.title);
@@ -527,20 +529,29 @@ class TimerScreenState extends State<TimerScreen>
                     child: Icon(Icons.arrow_forward),
                     backgroundColor: Colors.green,
                     onPressed: () {
-                      //show warning snackbar
-                      final snackBar = SnackBar(
-                        content: Text("Leaving this page will turn off the timer"),
-                        action: SnackBarAction(label: "OK", onPressed: () {}),
-                      );
-                      Scaffold.of(context).showSnackBar(snackBar);
-                      if (duration.inSeconds != 0) {
+                      //show select time snackbar when user did not select a time
+                      if (duration.inSeconds == 0) {
+                        final snackBar = SnackBar(
+                          content: Text("Please select a time"),
+                          action: SnackBarAction(label: "OK", onPressed: () {}),
+                        );
+                        Scaffold.of(context).showSnackBar(snackBar);
+                      }
+                      else if (duration.inSeconds != 0) {
+                        //show do not leave timer screen warning snackbar
+                        final snackBar = SnackBar(
+                          content:
+                              Text("Leaving this page will turn off the timer"),
+                          action: SnackBarAction(label: "OK", onPressed: () {}),
+                        );
+                        Scaffold.of(context).showSnackBar(snackBar);
+
                         setState(() {
                           startedTimer = true;
                           initalizedTimer = true;
 //                          hours = duration.inHours;
                           minutes = duration.inMinutes;
-                          controller.duration =
-                              Duration(minutes: minutes);
+                          controller.duration = Duration(minutes: minutes);
                         });
                       }
                     },
