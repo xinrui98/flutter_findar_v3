@@ -196,7 +196,6 @@ class LearnOurTechnologies extends StatelessWidget {
 
 3. The perfect combination of software (iSS: APP) and hardware (iSS: Equipment) maximizes the therapeutic effect by brainwave synchronization, better than any phone APP that is designed just for general use. All soundtracks in our APP have been crafted to align with the iSS: Equipment's frequency response to ensure that messages, tones, and beats can be regenerated with super high fidelity and can be perceived by your brain.
 
-
 ''';
 
   @override

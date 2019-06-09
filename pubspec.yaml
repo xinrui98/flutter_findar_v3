@@ -64,21 +64,26 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/playpause.flr
-    - assets/l1_1.mp3
+    - assets/fountain_bubbling.mp3
+    - assets/ocean_waves.mp3
+    - assets/gentle_lake.mp3
+    - assets/harmony.mp3
+    - assets/tranquility.mp3
+    - assets/dreaming.mp3
+    - assets/clouds_in_the_sky.mp3
+    - assets/force_of_nature.mp3
     - assets/dreaming.jpg
-    - assets/l1_2.mp3
     - assets/fountain_bubbling1.jpg
-    - assets/l1_3.mp3
     - assets/gentle_lake.jpg
-    - assets/l2_1.mp3
     - assets/harmony.jpg
-    - assets/l2_2.mp3
     - assets/ocean_waves.jpg
-    - assets/l2_3.mp3
     - assets/tranquility.jpg
+    - assets/clouds.jpg
+    - assets/force_of_nature.jpg
     - assets/app_icon.png
     - assets/app_icon_recolored.png
     - assets/app_icon2.png
+    - assets/app_icon3.png
     - assets/learn_screen.jpg
     - assets/learn_description3.jpg
     - assets/learn_description2.jpg

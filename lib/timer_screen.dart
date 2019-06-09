@@ -393,6 +393,39 @@ class TimerScreenState extends State<TimerScreen>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
+                      //prev sound
+                      RawMaterialButton(
+                        onPressed: () {
+                          setState(() {
+                            if (getCurrentMusicPosition() > 0) {
+                              Home.currentMusic =
+                              musicList[getCurrentMusicPosition() - 1];
+                            } else {
+                              Home.currentMusic = musicList[musicList.length - 1];
+                            }
+                            HomeState().stopSound();
+                            HomeState().playSound();
+                            Home.isMusicPlaying = true;
+                          });
+                        },
+                        elevation: 20.0,
+                        shape: CircleBorder(),
+                        child: new Icon(
+                          Icons.skip_previous,
+                          size: 40.0,
+                        ),
+//                    child: Container(
+//                        width: 80.0,
+//                        height: 80.0,
+//                        child: Center(
+//                            child: AnimatedIcon(
+//                          icon: AnimatedIcons.play_pause,
+//                          progress: controller.view,
+//                          color: Colors.white,
+//                          size: 50,
+//                        ))),
+                        fillColor: Colors.white54,
+                      ),
                       FloatingActionButton(
                         backgroundColor: Colors.green,
                         child: AnimatedBuilder(
@@ -441,7 +474,40 @@ class TimerScreenState extends State<TimerScreen>
                             });
                           }
                         },
-                      )
+                      ),
+                      //next sound
+                      RawMaterialButton(
+                        onPressed: () {
+                          setState(() {
+                            if (getCurrentMusicPosition() < musicList.length - 1) {
+                              Home.currentMusic =
+                              musicList[getCurrentMusicPosition() + 1];
+                            } else {
+                              Home.currentMusic = musicList[0];
+                            }
+                            HomeState().stopSound();
+                            HomeState().playSound();
+                            Home.isMusicPlaying = true;
+                          });
+                        },
+                        elevation: 20.0,
+                        shape: CircleBorder(),
+                        child: new Icon(
+                          Icons.skip_next,
+                          size: 40.0,
+                        ),
+//                    child: Container(
+//                        width: 80.0,
+//                        height: 80.0,
+//                        child: Center(
+//                            child: AnimatedIcon(
+//                          icon: AnimatedIcons.play_pause,
+//                          progress: controller.view,
+//                          color: Colors.white,
+//                          size: 50,
+//                        ))),
+                        fillColor: Colors.white54,
+                      ),
                     ],
                   ),
                 ),

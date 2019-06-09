@@ -218,55 +218,27 @@ class MainScreenState extends State<MainScreen>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               Container(
-                width: 85.0,
-                height: 85.0,
-                child: RawMaterialButton(
-                  onPressed: () {
-                    Home.isMusicPlaying = !Home.isMusicPlaying;
-                    if (Home.isMusicPlaying == true) {
+                child: Row(children: <Widget>[
+                  RawMaterialButton(
+                    onPressed: () {
                       setState(() {
-                        //Notification bar
-                        showMusicNotificationBar(
-                            "Findar SleepCare",
-                            (Home.currentMusic == null)
-                                ? musicList[0].title
-                                : Home.currentMusic.title);
+                        if (getCurrentMusicPosition() > 0) {
+                          Home.currentMusic =
+                          musicList[getCurrentMusicPosition() - 1];
+                        } else {
+                          Home.currentMusic = musicList[musicList.length - 1];
+                        }
+                        HomeState().stopSound();
                         HomeState().playSound();
                         Home.isMusicPlaying = true;
                       });
-                    } else if (Home.isMusicPlaying == false) {
-                      setState(() {
-                        //hide Notification bar
-//                        hideMusicNotificationBar();
-                        //toggles to PLAY button, when sound is paused
-                        togglePlayPauseNotificationBar( "Findar SleepCare",
-                          (Home.currentMusic == null)
-                              ? musicList[0].title
-                              : Home.currentMusic.title);
-                        HomeState().pauseSound();
-                        Home.isMusicPlaying = false;
-                      });
-                    }
-//                      setState(() {
-//                        Home.isMusicPlaying = !Home.isMusicPlaying;
-//                        controller.fling(velocity: _status ? -2.0 : 2.0);
-//                        if (Home.isMusicPlaying)
-//                          HomeState().playSound();
-//                        else
-//                          HomeState().pauseSound();
-//                      });
-                  },
-                  elevation: 20.0,
-                  shape: CircleBorder(),
-                  child: Home.isMusicPlaying
-                      ? new Icon(
-                          Icons.pause,
-                          size: 55.0,
-                        )
-                      : new Icon(
-                          Icons.play_arrow,
-                          size: 55.0,
-                        ),
+                    },
+                    elevation: 20.0,
+                    shape: CircleBorder(),
+                    child: new Icon(
+                      Icons.skip_previous,
+                      size: 55.0,
+                    ),
 //                    child: Container(
 //                        width: 80.0,
 //                        height: 80.0,
@@ -277,11 +249,89 @@ class MainScreenState extends State<MainScreen>
 //                          color: Colors.white,
 //                          size: 50,
 //                        ))),
-                  fillColor: Colors.white54,
-                ),
-              ),
-              Row(
-                children: <Widget>[
+                    fillColor: Colors.white54,
+                  ),
+                  RawMaterialButton(
+                    onPressed: () {
+                      Home.isMusicPlaying = !Home.isMusicPlaying;
+                      if (Home.isMusicPlaying == true) {
+                        setState(() {
+                          HomeState().playSound();
+                          Home.isMusicPlaying = true;
+                        });
+                      } else if (Home.isMusicPlaying == false) {
+                        setState(() {
+                          //hide Notification bar
+//                        hideMusicNotificationBar();
+                          //toggles to PLAY button, when sound is paused
+                          HomeState().pauseSound();
+                          Home.isMusicPlaying = false;
+                        });
+                      }
+//                      setState(() {
+//                        Home.isMusicPlaying = !Home.isMusicPlaying;
+//                        controller.fling(velocity: _status ? -2.0 : 2.0);
+//                        if (Home.isMusicPlaying)
+//                          HomeState().playSound();
+//                        else
+//                          HomeState().pauseSound();
+//                      });
+                    },
+                    elevation: 20.0,
+                    shape: CircleBorder(),
+                    child: Home.isMusicPlaying
+                        ? new Icon(
+                      Icons.pause,
+                      size: 70.0,
+                    )
+                        : new Icon(
+                      Icons.play_arrow,
+                      size: 70.0,
+                    ),
+//                    child: Container(
+//                        width: 80.0,
+//                        height: 80.0,
+//                        child: Center(
+//                            child: AnimatedIcon(
+//                          icon: AnimatedIcons.play_pause,
+//                          progress: controller.view,
+//                          color: Colors.white,
+//                          size: 50,
+//                        ))),
+                    fillColor: Colors.white54,
+                  ),
+                  RawMaterialButton(
+                    onPressed: () {
+                      setState(() {
+                        if (getCurrentMusicPosition() < musicList.length - 1) {
+                          Home.currentMusic =
+                          musicList[getCurrentMusicPosition() + 1];
+                        } else {
+                          Home.currentMusic = musicList[0];
+                        }
+                        HomeState().stopSound();
+                        HomeState().playSound();
+                        Home.isMusicPlaying = true;
+                      });
+                    },
+                    elevation: 20.0,
+                    shape: CircleBorder(),
+                    child: new Icon(
+                      Icons.skip_next,
+                      size: 55.0,
+                    ),
+//                    child: Container(
+//                        width: 80.0,
+//                        height: 80.0,
+//                        child: Center(
+//                            child: AnimatedIcon(
+//                          icon: AnimatedIcons.play_pause,
+//                          progress: controller.view,
+//                          color: Colors.white,
+//                          size: 50,
+//                        ))),
+                    fillColor: Colors.white54,
+                  ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
@@ -333,8 +383,8 @@ class MainScreenState extends State<MainScreen>
                       ),
                     ],
                   ),
-                ],
-              )
+                ]),
+              ),
             ],
           ),
         )
