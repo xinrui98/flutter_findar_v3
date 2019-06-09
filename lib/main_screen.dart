@@ -133,9 +133,10 @@ class MainScreenState extends State<MainScreen>
     } on PlatformException {}
   }
 
-  Future<void> togglePlayPauseNotificationBar(title, author) async{
+  Future<void> togglePlayPauseNotificationBar(title, author) async {
     try {
-      await MediaNotification.togglePlayPauseButton(title: title, author: author);
+      await MediaNotification.togglePlayPauseButton(
+          title: title, author: author);
       setState(() => status = 'toggling');
     } on PlatformException {}
   }
@@ -218,27 +219,33 @@ class MainScreenState extends State<MainScreen>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               Container(
-                child: Row(children: <Widget>[
-                  RawMaterialButton(
-                    onPressed: () {
-                      setState(() {
-                        if (getCurrentMusicPosition() > 0) {
-                          Home.currentMusic =
-                          musicList[getCurrentMusicPosition() - 1];
-                        } else {
-                          Home.currentMusic = musicList[musicList.length - 1];
-                        }
-                        HomeState().stopSound();
-                        HomeState().playSound();
-                        Home.isMusicPlaying = true;
-                      });
-                    },
-                    elevation: 20.0,
-                    shape: CircleBorder(),
-                    child: new Icon(
-                      Icons.skip_previous,
-                      size: 55.0,
-                    ),
+                child: Row(
+                  children: <Widget>[
+                    RawMaterialButton(
+                      onPressed: () {
+                        setState(() {
+                          if (getCurrentMusicPosition() > 0) {
+                            Home.currentMusic =
+                            musicList[getCurrentMusicPosition() - 1];
+                          } else {
+                            Home.currentMusic = musicList[musicList.length - 1];
+                          }
+                          HomeState().stopSound();
+                          HomeState().playSound();
+                          Home.isMusicPlaying = true;
+                          showMusicNotificationBar(
+                              "Findar SleepCare",
+                              (Home.currentMusic == null)
+                                  ? musicList[0].title
+                                  : Home.currentMusic.title);
+                        });
+                      },
+                      elevation: 20.0,
+                      shape: CircleBorder(),
+                      child: new Icon(
+                        Icons.skip_previous,
+                        size: 55.0,
+                      ),
 //                    child: Container(
 //                        width: 80.0,
 //                        height: 80.0,
@@ -249,25 +256,36 @@ class MainScreenState extends State<MainScreen>
 //                          color: Colors.white,
 //                          size: 50,
 //                        ))),
-                    fillColor: Colors.white54,
-                  ),
-                  RawMaterialButton(
-                    onPressed: () {
-                      Home.isMusicPlaying = !Home.isMusicPlaying;
-                      if (Home.isMusicPlaying == true) {
-                        setState(() {
-                          HomeState().playSound();
-                          Home.isMusicPlaying = true;
-                        });
-                      } else if (Home.isMusicPlaying == false) {
-                        setState(() {
-                          //hide Notification bar
+                      fillColor: Colors.white54,
+                    ),
+                    RawMaterialButton(
+                      onPressed: () {
+                        Home.isMusicPlaying = !Home.isMusicPlaying;
+                        if (Home.isMusicPlaying == true) {
+                          setState(() {
+                            //Notification bar
+                            showMusicNotificationBar(
+                                "Findar SleepCare",
+                                (Home.currentMusic == null)
+                                    ? musicList[0].title
+                                    : Home.currentMusic.title);
+                            HomeState().playSound();
+                            Home.isMusicPlaying = true;
+                          });
+                        } else if (Home.isMusicPlaying == false) {
+                          setState(() {
+                            //hide Notification bar
 //                        hideMusicNotificationBar();
-                          //toggles to PLAY button, when sound is paused
-                          HomeState().pauseSound();
-                          Home.isMusicPlaying = false;
-                        });
-                      }
+                            //toggles to PLAY button, when sound is paused
+                            togglePlayPauseNotificationBar(
+                                "Findar SleepCare",
+                                (Home.currentMusic == null)
+                                    ? musicList[0].title
+                                    : Home.currentMusic.title);
+                            HomeState().pauseSound();
+                            Home.isMusicPlaying = false;
+                          });
+                        }
 //                      setState(() {
 //                        Home.isMusicPlaying = !Home.isMusicPlaying;
 //                        controller.fling(velocity: _status ? -2.0 : 2.0);
@@ -276,18 +294,18 @@ class MainScreenState extends State<MainScreen>
 //                        else
 //                          HomeState().pauseSound();
 //                      });
-                    },
-                    elevation: 20.0,
-                    shape: CircleBorder(),
-                    child: Home.isMusicPlaying
-                        ? new Icon(
-                      Icons.pause,
-                      size: 70.0,
-                    )
-                        : new Icon(
-                      Icons.play_arrow,
-                      size: 70.0,
-                    ),
+                      },
+                      elevation: 20.0,
+                      shape: CircleBorder(),
+                      child: Home.isMusicPlaying
+                          ? new Icon(
+                              Icons.pause,
+                              size: 70.0,
+                            )
+                          : new Icon(
+                              Icons.play_arrow,
+                              size: 70.0,
+                            ),
 //                    child: Container(
 //                        width: 80.0,
 //                        height: 80.0,
@@ -298,28 +316,33 @@ class MainScreenState extends State<MainScreen>
 //                          color: Colors.white,
 //                          size: 50,
 //                        ))),
-                    fillColor: Colors.white54,
-                  ),
-                  RawMaterialButton(
-                    onPressed: () {
-                      setState(() {
-                        if (getCurrentMusicPosition() < musicList.length - 1) {
-                          Home.currentMusic =
-                          musicList[getCurrentMusicPosition() + 1];
-                        } else {
-                          Home.currentMusic = musicList[0];
-                        }
-                        HomeState().stopSound();
-                        HomeState().playSound();
-                        Home.isMusicPlaying = true;
-                      });
-                    },
-                    elevation: 20.0,
-                    shape: CircleBorder(),
-                    child: new Icon(
-                      Icons.skip_next,
-                      size: 55.0,
+                      fillColor: Colors.white54,
                     ),
+                    RawMaterialButton(
+                      onPressed: () {
+                        setState(() {
+                          if (getCurrentMusicPosition() < musicList.length - 1) {
+                            Home.currentMusic =
+                            musicList[getCurrentMusicPosition() + 1];
+                          } else {
+                            Home.currentMusic = musicList[0];
+                          }
+                          HomeState().stopSound();
+                          HomeState().playSound();
+                          Home.isMusicPlaying = true;
+                          showMusicNotificationBar(
+                              "Findar SleepCare",
+                              (Home.currentMusic == null)
+                                  ? musicList[0].title
+                                  : Home.currentMusic.title);
+                        });
+                      },
+                      elevation: 20.0,
+                      shape: CircleBorder(),
+                      child: new Icon(
+                        Icons.skip_next,
+                        size: 55.0,
+                      ),
 //                    child: Container(
 //                        width: 80.0,
 //                        height: 80.0,
@@ -330,60 +353,61 @@ class MainScreenState extends State<MainScreen>
 //                          color: Colors.white,
 //                          size: 50,
 //                        ))),
-                    fillColor: Colors.white54,
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Listener(
-                        onPointerDown: (details) {
-                          _increaseVolumeButtonPressed = true;
-                          volumeButtonLongPress();
-                          print("increase vol button long hold");
-                        },
-                        onPointerUp: (details) {
-                          _increaseVolumeButtonPressed = false;
-                          print("increase vol button long hold off");
-                        },
-                        child: RaisedButton(
-                          color: Colors.white54,
-                          child: Icon(
-                            Icons.volume_up,
-                            size: 35.0,
-                          ),
-                          shape: new RoundedRectangleBorder(
-                              borderRadius: new BorderRadius.circular(30.0)),
-                          onPressed: () {
+                      fillColor: Colors.white54,
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Listener(
+                    onPointerDown: (details) {
+                      _increaseVolumeButtonPressed = true;
+                      volumeButtonLongPress();
+                      print("increase vol button long hold");
+                    },
+                    onPointerUp: (details) {
+                      _increaseVolumeButtonPressed = false;
+                      print("increase vol button long hold off");
+                    },
+                    child: RaisedButton(
+                      color: Colors.white54,
+                      child: Icon(
+                        Icons.volume_up,
+                        size: 35.0,
+                      ),
+                      shape: new RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(30.0)),
+                      onPressed: () {
 //                            Volume.volUp() already called during onPointerUp
-                          },
-                        ),
-                      ),
-                      Listener(
-                        onPointerDown: (details) {
-                          _decreaseVolumeButtonPressed = true;
-                          volumeButtonLongPress();
-                          print("decrease vol button long hold");
-                        },
-                        onPointerUp: (details) {
-                          _decreaseVolumeButtonPressed = false;
-                          print("decrease vol button long hold off");
-                        },
-                        child: RaisedButton(
-                          color: Colors.white54,
-                          child: Icon(
-                            Icons.volume_down,
-                            size: 35.0,
-                          ),
-                          shape: new RoundedRectangleBorder(
-                              borderRadius: new BorderRadius.circular(30.0)),
-                          onPressed: () {
-//                            Volume.volDown() already called during onPointerUp
-                          },
-                        ),
-                      ),
-                    ],
+                      },
+                    ),
                   ),
-                ]),
+                  Listener(
+                    onPointerDown: (details) {
+                      _decreaseVolumeButtonPressed = true;
+                      volumeButtonLongPress();
+                      print("decrease vol button long hold");
+                    },
+                    onPointerUp: (details) {
+                      _decreaseVolumeButtonPressed = false;
+                      print("decrease vol button long hold off");
+                    },
+                    child: RaisedButton(
+                      color: Colors.white54,
+                      child: Icon(
+                        Icons.volume_down,
+                        size: 35.0,
+                      ),
+                      shape: new RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(30.0)),
+                      onPressed: () {
+//                            Volume.volDown() already called during onPointerUp
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
