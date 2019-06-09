@@ -406,6 +406,11 @@ class TimerScreenState extends State<TimerScreen>
                             HomeState().stopSound();
                             HomeState().playSound();
                             Home.isMusicPlaying = true;
+                            showMusicNotificationBar(
+                                "Findar SleepCare",
+                                (Home.currentMusic == null)
+                                    ? musicList[0].title
+                                    : Home.currentMusic.title);
                           });
                         },
                         elevation: 20.0,
@@ -488,6 +493,11 @@ class TimerScreenState extends State<TimerScreen>
                             HomeState().stopSound();
                             HomeState().playSound();
                             Home.isMusicPlaying = true;
+                            showMusicNotificationBar(
+                                "Findar SleepCare",
+                                (Home.currentMusic == null)
+                                    ? musicList[0].title
+                                    : Home.currentMusic.title);
                           });
                         },
                         elevation: 20.0,
