@@ -18,6 +18,7 @@ class TimerScreen extends StatefulWidget {
     return TimerScreenState();
   }
 }
+//This is for didAppLifeCycleStateChange, onPause, onResume etc
 //add WigetsBindingObserver to TimerScreenState;
 //initstate
 //dispose
@@ -63,7 +64,7 @@ class TimerScreenState extends State<TimerScreen>
   void initState() {
     super.initState();
 
-    //to run activity in background
+    //to run activity in background, state resume, state inactive etc
     WidgetsBinding.instance.addObserver(this);
 
     duration = Duration(minutes: minutes);

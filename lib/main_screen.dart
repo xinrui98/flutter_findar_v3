@@ -8,6 +8,7 @@ import 'package:volume/volume.dart';
 import 'package:flutter/services.dart';
 import 'package:media_notification/media_notification.dart';
 
+
 class MainScreen extends StatefulWidget {
   MainScreen({
     Key key,
@@ -166,6 +167,13 @@ class MainScreenState extends State<MainScreen>
     } else {
       controller.fling(velocity: -2.0);
     }
+
+    //prevent app from turning landscape
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
     return Scaffold(
       key: _scaffoldKey,
       body: Stack(fit: StackFit.expand, children: <Widget>[
