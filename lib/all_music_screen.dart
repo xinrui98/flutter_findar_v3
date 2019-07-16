@@ -227,7 +227,7 @@ class AllMusicScreenState extends State<AllMusicScreen> with SingleTickerProvide
                                                       child: Stack(
                                                         children: <Widget>[
                                                           Container(
-                                                            child: Text(musicList[index].title, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w300),),
+                                                            child: Text("${musicList[index].title}\n(${musicList[index].description})" , style: TextStyle(color: Colors.white, fontWeight: FontWeight.w300),),
                                                           )
                                                         ],
                                                       ),
